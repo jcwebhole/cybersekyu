@@ -14,6 +14,7 @@ by <a href="http://jsnbrn.com">Jason Bruno</a>
 <h3><a href="<?php echo $current_page.'list'; ?>">List and Check All Users</a></h3>
 <h3><a href="<?php echo $current_page.'check'; ?>">Check Hash Manually</a></h3>
 <h3><a href="<?php echo $current_page.'create'; ?>">Create Hash</a></h3>
+<h3><a href="<?php echo $current_page.'strength'; ?>">Check Password</a></h3>
 
 <br><hr><br>
 <?php
@@ -86,6 +87,88 @@ echo '<h3>'.$hashedPassword.'</h3>';
 </div>
 <?php
 }
+if(isset($_GET['subpage']) && $_GET['subpage']=='strength'){
+
+wp_enqueue_script( 'password-strength-meter' );
+?>
+<div>
+<h2>Check Password</h2>
+<input type="text" name="pw">
+<span id="password-strength"></span>
+<input type="submit" style="display: none">
+</div>
+<script>
+
+jQuery( document ).ready( function( $ ) {
+// trigger the wdmChkPwdStrength
+$( 'body' ).on( 'keyup', 'input[name=pw], input[name=pw]', function( event ) {
+    wdmChkPwdStrength(
+        // password field
+        $('input[name=pw]'),
+        // confirm password field
+        $('input[name=pw]'),
+        // strength status
+        $('#password-strength'),
+       // Submit button
+       $('input[type=submit]'),
+       // blacklisted words which should not be a part of the password
+       ['admin', 'happy', 'hello', '1234']
+    );
+  });
+});
+
+
+
+function wdmChkPwdStrength( $pwd,  $confirmPwd, $strengthStatus, $submitBtn, blacklistedWords ) {
+    var pwd = $pwd.val();
+    var confirmPwd = $confirmPwd.val();
+
+    // extend the blacklisted words array with those from the site data
+    blacklistedWords = blacklistedWords.concat( wp.passwordStrength.userInputBlacklist() )
+
+    // every time a letter is typed, reset the submit button and the strength meter status
+    // disable the submit button
+    $submitBtn.attr( 'disabled', 'disabled' );
+    $strengthStatus.removeClass( 'short bad good strong' );
+
+    // calculate the password strength
+    var pwdStrength = wp.passwordStrength.meter( pwd, blacklistedWords, confirmPwd );
+
+// check the password strength
+switch ( pwdStrength ) {
+
+    case 2:
+    $strengthStatus.addClass( 'bad' ).html( pwsL10n.bad );
+    break;
+
+    case 3:
+    $strengthStatus.addClass( 'good' ).html( pwsL10n.good );
+    break;
+
+    case 4:
+    $strengthStatus.addClass( 'strong' ).html( pwsL10n.strong );
+    break;
+
+    case 5:
+    $strengthStatus.addClass( 'short' ).html( pwsL10n.mismatch );
+    break;
+
+    default:
+    $strengthStatus.addClass( 'short' ).html( pwsL10n.short );
+
+}
+// set the status of the submit button
+}
+
+
+
+
+</script>
+
+
+<?php
+}
+
 
 function checkP($p){
 global $wpdb;
