@@ -1,88 +1,107 @@
 <?php
-// cybersekyu_install();
-// cybersekyu_install_data();
+global $wpdb;
+$table_name = $wpdb->prefix . 'cybersekyu';
+$current_page = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+$uri_parts = explode('?', $current_page, 2);
+$current_page = $uri_parts[0].'?page=CyberSekyu-Options&subpage=';
+
 ?>
 <div class="wrap">
 <h2>CyberSekyu</h2>
 by <a href="http://jsnbrn.com">Jason Bruno</a>
+<br><hr>
+<h2>What to do?</h2>
+<h3><a href="<?php echo $current_page.'list'; ?>">List and Check All Users</a></h3>
+<h3><a href="<?php echo $current_page.'check'; ?>">Check Hash Manually</a></h3>
+<h3><a href="<?php echo $current_page.'create'; ?>">Create Hash</a></h3>
 
+<br><hr><br>
+<?php
+if(isset($_GET['subpage']) && $_GET['subpage']=='list'){
+?>
+<div>
+<h2>Listing all users</h2>
+<?php
+// $users = get_users( array( 'fields' => array( 'ID' ) ) );
+// // var_dump($users);
+// foreach($users as $user_id){
+//         var_dump(get_user_meta ( $user_id->ID));
+//         $user = get_user_meta ( $user_id->ID);
+//         echo $user['nickname'][0].'<br>';
+//     }
+
+  $sql = "SELECT * FROM `".$wpdb->prefix . 'users'."`";
+  $result = $wpdb->get_results($sql);
+  echo '<h3>Number of users: '.count($result).'</h3>';
+  foreach($result as $item) {
+    echo $item->user_login;
+    echo ' | '.checkP($item->user_pass);
+    echo '<br>';
+  }
+
+
+?>
+</div>
+<?php
+}
+?>
+
+<?php
+if(isset($_GET['subpage']) && $_GET['subpage']=='check'){
+?>
 
 <div>
-<form action="" method="get">
 <h2>Check hash</h2>
+<form action="" method="get">
 <input type="text" name="search"><br>
 <input type="hidden" name="page" value="CyberSekyu-Options">
+<input type="hidden" name="subpage" value="check">
 <input type="submit" value="Search">
 </form>
 <?php
-
-// require_once('/wordpress/wp-load.php');
-// require_once('cybersekyu-phpass.php');
-require_once( ABSPATH . 'wp-includes/class-phpass.php' );
-
-
-$wp_hasher = new PasswordHash(8, TRUE);
- 
-// $password_hashed = '$P$B55D6LjfHDkINU5wF.v2BuuzO0/XPk/';
-// $plain_password = 'test';
- 
-// if($wp_hasher->CheckPassword($plain_password, $password_hashed)) {
-//     echo "YES, Matched";
-// } else {
-//     echo "No, Wrong Password";
-// }
-
-
-// $servername = "localhost";
-// $username = "root";
-// $password = "";
-// $dbname = "rockyou";
-
-// // Create connection
-// $conn = new mysqli($servername, $username, $password, $dbname);
-// // Check connection
-// if ($conn->connect_error) {
-//     die("Connection failed: " . $conn->connect_error);
-// } 
-
-if(isset($_GET['search'])){
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'cybersekyu';
-    $sql = "SELECT * FROM `$table_name`";
-// WHERE `password` ='".$_GET['search']."'";
-
-// $result = $conn->query($sql);
-$result = $wpdb->get_results($sql);
-$good=true;
-// var_dump($result);
-// echo $result[0]->password;
-foreach($result as $item) {
-    // while($row = $result) {
-      if($wp_hasher->CheckPassword($item->password, $_GET['search'])) {
-        $good = false;
-        echo 'Password found in database: '.$item->password;
-      }
-    }
-if($good) echo 'Password not found.';
-
-}
-
-$search = wp_hash_password($_GET['search']);
-
 ?>
-
-<form action="" method="get">
+<div>
+<?php
+}
+if(isset($_GET['subpage']) && $_GET['subpage']=='create'){
+?>
+<div>
 <h2>Make hash</h2>
+<form action="" method="get">
 <input type="text" name="make"><br>
 <input type="hidden" name="page" value="CyberSekyu-Options">
+<input type="hidden" name="subpage" value="create">
 <input type="submit" value="Search">
 </form>
 <?php
 if(isset($_GET['make'])){
 $hashedPassword = wp_hash_password($_GET['make']);
-echo $hashedPassword;
+echo '<h3>'.$hashedPassword.'</h3>';
 }
 ?>
-
 </div>
+<?php
+}
+
+function checkP($p){
+global $wpdb;
+$table_name = $wpdb->prefix . 'cybersekyu';
+
+require_once( ABSPATH . 'wp-includes/class-phpass.php' );
+$wp_hasher = new PasswordHash(8, TRUE);
+
+  $sql = "SELECT * FROM `$table_name`";
+  $result = $wpdb->get_results($sql);
+  $good=true;
+  foreach($result as $item) {
+    if($wp_hasher->CheckPassword($item->password, $p)) {
+        $good = false;
+        return 'Password found in database: '.$item->password.'';
+      }
+    }
+  if($good) return 'Password not found.';
+}
+
+?>
+
 
