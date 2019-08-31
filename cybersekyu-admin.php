@@ -59,6 +59,10 @@ if(isset($_GET['subpage']) && $_GET['subpage']=='check'){
 <input type="submit" value="Search">
 </form>
 <?php
+if(isset($_GET['search'])){
+echo checkP($_GET['search']);
+}
+
 ?>
 <div>
 <?php
@@ -96,10 +100,10 @@ $wp_hasher = new PasswordHash(8, TRUE);
   foreach($result as $item) {
     if($wp_hasher->CheckPassword($item->password, $p)) {
         $good = false;
-        return 'Password found in database: '.$item->password.'';
+        return '<div style="color:#8B0000;">Password found in database: '.$item->password.'</div>';
       }
     }
-  if($good) return 'Password not found.';
+  if($good) return '<div class="color:#008000;">Password not found.</div>';
 }
 
 ?>
